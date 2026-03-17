@@ -1,0 +1,32 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'rubohash'
+
+options = {
+  output: Rubohash.robot_output_path,
+  format: Rubohash.default_format
+}
+
+parser = OptionParser.new do |opts|
+  opts.banner = 'Usage: rubohash INPUT [options]'
+
+  opts.on('-o', '--output PATH', 'Output directory') { |v| options[:output] = v }
+  opts.on('-f', '--format FORMAT', 'Image format (png, jpg, gif, ...)') { |v| options[:format] = v }
+end
+
+parser.parse!
+input = ARGV.shift
+
+if input.nil? || input.empty?
+  warn parser.to_s
+  exit 1
+end
+
+Rubohash.configure do |config|
+  config.robot_output_path = File.expand_path(options[:output])
+  config.default_format = options[:format]
+end
+
+robot = Rubohash.assemble!(input)
+puts File.join(Rubohash.robot_output_path, "#{robot.name}.#{options[:format]}")

@@ -4,19 +4,38 @@ A ruby implementation for generating unique images based on the checksum of a gi
 
 ## Installation
 
-I have provided some scripts under `bin/` which should help automate the process. You'll need to either use an initializer to set the `output_path` or edit `lib/rubohash.rb` to change `@robot_output_path  = '/Users/mark/dev/backend-tools/handi/src/rubohash/output/'` to a known location on your system. You can also configure the various options like `default_set`, `default_format`, and `default_bg_set`.
+Add it to your Gemfile from GitHub:
 
-You should be able to use the script `./bin/build.sh` to build, install, and launch an irb terminal with the gem loaded. You can also configure the gem in this script.
+```rb
+gem 'rubohash', github: 'nedzib/rubohash', group: :development
+```
+
+For reproducible installs, prefer pinning a ref:
+
+```rb
+gem 'rubohash', github: 'nedzib/rubohash', tag: 'v0.1.0', group: :development
+```
+
+By default, generated files are written to `./output` from your current working directory.
+
+For local development in this repository, you can use `./bin/build.sh`.
 
 ## Usage
 
-Once you have an irb console open, simple do:
+From Ruby code:
 
 ```rb
   Rubohash.assemble!("my_test_string_here")
 ```
 
 This will run the algorithm and output the file to `@robot_output_path`. You also need to have ImageMagick installed on your system.
+
+From the command line:
+
+```sh
+rubohash my_test_string_here
+rubohash my_test_string_here --output ./tmp/robots --format jpg
+```
 
 Rubohash can also be mounted inside a Rails application by setting `mounted` to `true`.
 

@@ -1,3 +1,5 @@
+require 'fileutils'
+
 # Rubohash namespace
 module Rubohash
   # The factory which builds robots
@@ -143,7 +145,8 @@ module Rubohash
         # Just return the image
         image
       else
-        path = "#{Rubohash.robot_output_path}#{robot.name}.#{self.my_format}"
+        FileUtils.mkdir_p(Rubohash.robot_output_path)
+        path = File.join(Rubohash.robot_output_path, "#{robot.name}.#{self.my_format}")
         puts "Writing Robot: '#{path}'"
         image.write path
         robot

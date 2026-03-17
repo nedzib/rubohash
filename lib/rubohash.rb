@@ -2,19 +2,19 @@ require 'rubohash/version'
 
 require 'securerandom'
 require 'digest'
-require 'pp'
+require 'logger'
 require 'mini_magick'
 
 require 'rubohash/factory'
 require 'rubohash/robot'
-MiniMagick.logger.level = Logger::DEBUG
+MiniMagick.logger.level = Logger::WARN
 
 # Rubohash namespace
 module Rubohash
   @default_extensions = %w[.png .gif .jpg .bmp .jpeg .ppm .datauri]
   @default_set        = 'set1'
   @use_default_set    = false
-  @robot_output_path  = '/Users/mark/dev/backend-tools/handi/src/rubohash/output/'
+  @robot_output_path  = File.expand_path('output', Dir.pwd)
   @default_format     = 'png'
   @default_bg_set     = 'bg1'
   @use_default_bg_set = false

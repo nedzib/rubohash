@@ -17,7 +17,7 @@ RSpec.describe Rubohash do
     end
 
     it 'knows the robot_output_path' do
-      expect(Rubohash.robot_output_path).to eql('/Users/mark/dev/backend-tools/handi/src/rubohash/output/')
+      expect(Rubohash.robot_output_path).to eql(File.expand_path('output', Dir.pwd))
     end
 
     it 'knows the default_format' do
