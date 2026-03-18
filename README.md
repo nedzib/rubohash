@@ -28,6 +28,16 @@ From Ruby code:
   Rubohash.assemble!("my_test_string_here")
 ```
 
+To generate transparent PNGs without background composition:
+
+```rb
+Rubohash.configure do |config|
+  config.use_background = false
+end
+
+Rubohash.assemble!("my_test_string_here")
+```
+
 This will run the algorithm and output the file to `@robot_output_path`. You also need to have ImageMagick installed on your system.
 
 From the command line:
@@ -35,6 +45,7 @@ From the command line:
 ```sh
 rubohash my_test_string_here
 rubohash my_test_string_here --output ./tmp/robots --format jpg
+rubohash my_test_string_here --no-background
 ```
 
 Rubohash can also be mounted inside a Rails application by setting `mounted` to `true`.

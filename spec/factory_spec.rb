@@ -25,4 +25,43 @@ RSpec.describe Rubohash::Factory do
       expect(described_class.new('mark.holmberg@icentris.com').my_hash_array).to match_array(expected)
     end
   end
+
+  describe 'concerning assemble' do
+    it 'can skip background composition when disabled' do
+      original_use_background = Rubohash.use_background
+      original_mounted = Rubohash.mounted
+
+      begin
+        Rubohash.use_background = false
+        Rubohash.mounted = true
+
+        factory = described_class.new('avatar')
+
+        allow(factory).to receive(:build_robot_attrs).and_return(
+          {
+            my_set: '/tmp/set',
+            my_background_set: '/tmp/bg'
+          }
+        )
+        allow(factory).to receive(:get_list_of_files).and_return(['/tmp/part.png'])
+        expect(factory).not_to receive(:list_files)
+
+        image = double('image')
+        part = double('part')
+        composite_options = double('composite_options')
+
+        allow(MiniMagick::Image).to receive(:open).with('/tmp/part.png').and_return(image, part)
+        allow(image).to receive(:resize).with('1024x1024').and_return(image)
+        allow(image).to receive(:resize).with('300x300').and_return(image)
+        allow(part).to receive(:resize).with('1024x1024').and_return(part)
+        allow(composite_options).to receive(:compose).with('Over')
+        allow(image).to receive(:composite).with(part).and_yield(composite_options).and_return(image)
+
+        expect(factory.assemble).to eql(image)
+      ensure
+        Rubohash.use_background = original_use_background
+        Rubohash.mounted = original_mounted
+      end
+    end
+  end
 end

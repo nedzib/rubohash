@@ -18,6 +18,7 @@ module Rubohash
   @default_format     = 'png'
   @default_bg_set     = 'bg1'
   @use_default_bg_set = false
+  @use_background     = true
   @mounted            = false
 
   def self.inspect
@@ -29,6 +30,7 @@ module Rubohash
       default_format
       default_bg_set
       use_default_bg_set
+      use_background
       mounted
     ].each_with_object({}) do |k, obj|
       obj[k] = Rubohash.instance_variable_get("@#{k}")
@@ -103,6 +105,16 @@ module Rubohash
   # Get whether we are using the default background set
   def self.use_default_bg_set
     @use_default_bg_set
+  end
+
+  # Set whether we should composite a background
+  def self.use_background=(my_use_background)
+    @use_background = my_use_background
+  end
+
+  # Get whether we should composite a background
+  def self.use_background
+    @use_background
   end
 
   # Set mounted to rails engine

@@ -5,7 +5,8 @@ require 'rubohash'
 
 options = {
   output: Rubohash.robot_output_path,
-  format: Rubohash.default_format
+  format: Rubohash.default_format,
+  background: Rubohash.use_background
 }
 
 parser = OptionParser.new do |opts|
@@ -13,6 +14,7 @@ parser = OptionParser.new do |opts|
 
   opts.on('-o', '--output PATH', 'Output directory') { |v| options[:output] = v }
   opts.on('-f', '--format FORMAT', 'Image format (png, jpg, gif, ...)') { |v| options[:format] = v }
+  opts.on('--[no-]background', 'Enable or disable background composition') { |v| options[:background] = v }
 end
 
 parser.parse!
@@ -26,6 +28,7 @@ end
 Rubohash.configure do |config|
   config.robot_output_path = File.expand_path(options[:output])
   config.default_format = options[:format]
+  config.use_background = options[:background]
 end
 
 robot = Rubohash.assemble!(input)

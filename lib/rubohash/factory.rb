@@ -113,13 +113,6 @@ module Rubohash
       roboparts = get_list_of_files(robot.my_set).sort_by { |k| k.split('#')[1] }
       robot.parts = roboparts
 
-      # uuse the hash bits to get the actual sample
-      background_files = list_files(robot.my_background_set)
-
-      # Set background itself from hash bits
-      background_hash_key = my_hash_array[3] % background_files.size
-      background = background_files[background_hash_key]
-
       image = MiniMagick::Image.open(roboparts.first)
       image = image.resize('1024x1024')
 
@@ -131,11 +124,22 @@ module Rubohash
         end
       end
 
-      bg = MiniMagick::Image.open(background)
-      bg = bg.resize('1024x1024')
-      image = image.composite(bg) do |c|
-        c.compose 'Dst_Over'
-        c.resize '300x300'
+      if Rubohash.use_background
+        # use the hash bits to get the actual sample
+        background_files = list_files(robot.my_background_set)
+
+        # Set background itself from hash bits
+        background_hash_key = my_hash_array[3] % background_files.size
+        background = background_files[background_hash_key]
+
+        bg = MiniMagick::Image.open(background)
+        bg = bg.resize('1024x1024')
+        image = image.composite(bg) do |c|
+          c.compose 'Dst_Over'
+          c.resize '300x300'
+        end
+      else
+        image = image.resize('300x300')
       end
 
       robot.name = string

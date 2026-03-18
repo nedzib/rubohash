@@ -32,6 +32,10 @@ RSpec.describe Rubohash do
       expect(Rubohash.use_default_bg_set).to be_falsey
     end
 
+    it 'knows the use_background' do
+      expect(Rubohash.use_background).to be_truthy
+    end
+
     it 'knows the mounted' do
       expect(Rubohash.mounted).to be_falsey
     end
