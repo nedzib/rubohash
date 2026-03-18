@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Mark Holmberg']
   spec.email         = ['mark.holmberg@icentris.com']
 
-  spec.summary       = 'It generates SHA512 Robot Images.'
+  spec.summary       = 'Ruby adaptation of robohash.org.'
   spec.description   = 'Ruby adaptation of robohash.org'
   spec.homepage      = 'https://github.com/nedzib/rubohash'
   spec.license       = 'MIT'
