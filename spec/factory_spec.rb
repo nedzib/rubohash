@@ -43,19 +43,19 @@ RSpec.describe Rubohash::Factory do
             my_background_set: '/tmp/bg'
           }
         )
-        allow(factory).to receive(:get_list_of_files).and_return(['/tmp/part.png'])
+        allow(factory).to receive(:get_list_of_files).and_return(['/tmp/layer_b.png', '/tmp/layer_a.png'])
         expect(factory).not_to receive(:list_files)
 
         image = double('image')
-        part = double('part')
-        composite_options = double('composite_options')
+        tempfile = double('tempfile')
 
-        allow(MiniMagick::Image).to receive(:open).with('/tmp/part.png').and_return(image, part)
-        allow(image).to receive(:resize).with('1024x1024').and_return(image)
-        allow(image).to receive(:resize).with('300x300').and_return(image)
-        allow(part).to receive(:resize).with('1024x1024').and_return(part)
-        allow(composite_options).to receive(:compose).with('Over')
-        allow(image).to receive(:composite).with(part).and_yield(composite_options).and_return(image)
+        expect(factory).to receive(:compose_image).with(
+          ['/tmp/layer_b.png', '/tmp/layer_a.png'],
+          nil,
+          '/tmp/output.png'
+        )
+        allow(factory).to receive(:output_destination_for).and_return(['/tmp/output.png', tempfile])
+        allow(factory).to receive(:load_image).with('/tmp/output.png', tempfile: tempfile).and_return(image)
 
         expect(factory.assemble).to eql(image)
       ensure

@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'tempfile'
 
 # Rubohash namespace
 module Rubohash
@@ -49,34 +50,32 @@ module Rubohash
 
     # List directories for the given path
     def list_directories(path)
-      Dir.entries(path).select do |entry|
+      self.class.directory_cache[path] ||= Dir.entries(path).select do |entry|
         next if %w[. ..].include?(entry)
         File.directory?(File.join(path, entry))
-      end.sort
+      end.sort.freeze
     end
 
     # List files from the given path
     def list_files(path)
-      Dir.glob("#{path}/**").reject do |entry|
+      self.class.file_cache[path] ||= Dir.glob("#{path}/**").reject do |entry|
         next if %w[. ..].include?(entry)
         File.directory?(entry)
-      end.sort
+      end.sort.freeze
     end
 
     # Get the random parts for the robot
     # eyes, ears, etc...
     def get_list_of_files(path)
-      # Get all subdirectories
-      # sets/set1/blue
-      directories = Dir.glob("#{path}/**").select do |entry|
+      directories = self.class.part_directory_cache[path] ||= Dir.glob("#{path}/**").select do |entry|
         next if %w[. ..].include?(entry)
         File.directory?(entry)
-      end.sort
+      end.sort.freeze
 
       # This is to index into the proper place in the hash array
       iter = 4
       directories.map do |dir|
-        files = Dir.entries(dir).reject { |k| %w[. ..].include?(k) }.sort
+        files = self.class.directory_file_cache[dir] ||= Dir.entries(dir).reject { |k| %w[. ..].include?(k) }.sort.freeze
         sample = files[my_hash_array[iter] % files.length]
         iter += 1
         [dir, sample].join('/')
@@ -112,52 +111,88 @@ module Rubohash
 
       roboparts = get_list_of_files(robot.my_set).sort_by { |k| k.split('#')[1] }
       robot.parts = roboparts
+      background = selected_background_for(robot)
 
-      image = MiniMagick::Image.open(roboparts.first)
-      image = image.resize('1024x1024')
-
-      roboparts.each do |part|
-        img = MiniMagick::Image.open(part)
-        img = img.resize('1024x1024')
-        image = image.composite(img) do |c|
-          c.compose 'Over'
-        end
-      end
-
-      if Rubohash.use_background
-        # use the hash bits to get the actual sample
-        background_files = list_files(robot.my_background_set)
-
-        # Set background itself from hash bits
-        background_hash_key = my_hash_array[3] % background_files.size
-        background = background_files[background_hash_key]
-
-        bg = MiniMagick::Image.open(background)
-        bg = bg.resize('1024x1024')
-        image = image.composite(bg) do |c|
-          c.compose 'Dst_Over'
-          c.resize '300x300'
-        end
-      else
-        image = image.resize('300x300')
-      end
+      output_path, tempfile = output_destination_for(robot)
+      compose_image(roboparts, background, output_path)
 
       robot.name = string
       robot.my_digest = my_digest
 
-      if Rubohash.mounted
-        # Just return the image
-        image
-      else
-        FileUtils.mkdir_p(Rubohash.robot_output_path)
-        path = File.join(Rubohash.robot_output_path, "#{robot.name}.#{self.my_format}")
-        puts "Writing Robot: '#{path}'"
-        image.write path
-        robot
-      end
+      return load_image(output_path, tempfile: tempfile) if Rubohash.mounted
+
+      puts "Writing Robot: '#{output_path}'"
+      robot
+    end
+
+    def self.directory_cache
+      @directory_cache ||= {}
+    end
+
+    def self.file_cache
+      @file_cache ||= {}
+    end
+
+    def self.part_directory_cache
+      @part_directory_cache ||= {}
+    end
+
+    def self.directory_file_cache
+      @directory_file_cache ||= {}
     end
 
     private
+
+    def compose_image(parts, background, output_path)
+      MiniMagick::Tool::Convert.new do |convert|
+        if background
+          convert << '('
+          convert << background
+          convert << '-resize' << '1024x1024!'
+          convert << ')'
+        else
+          convert << '-size' << '1024x1024'
+          convert << 'canvas:none'
+        end
+
+        parts.each do |part|
+          convert << '('
+          convert << part
+          convert << '-resize' << '1024x1024!'
+          convert << ')'
+        end
+
+        convert << '-background' << 'none'
+        convert << '-layers' << 'flatten'
+
+        convert << '-resize' << '300x300!'
+        convert << output_path
+      end
+    end
+
+    def selected_background_for(robot)
+      return unless Rubohash.use_background
+
+      background_files = list_files(robot.my_background_set)
+      background_hash_key = my_hash_array[3] % background_files.size
+      background_files[background_hash_key]
+    end
+
+    def output_destination_for(robot)
+      if Rubohash.mounted
+        tempfile = Tempfile.new([robot.name || 'rubohash', ".#{my_format}"])
+        [tempfile.path, tempfile]
+      else
+        FileUtils.mkdir_p(Rubohash.robot_output_path)
+        [File.join(Rubohash.robot_output_path, "#{string}.#{my_format}"), nil]
+      end
+    end
+
+    def load_image(path, tempfile: nil)
+      image = MiniMagick::Image.new(path)
+      image.instance_variable_set(:@rubohash_tempfile, tempfile) if tempfile
+      image
+    end
 
     # Build out robot attributes
     def build_robot_attrs

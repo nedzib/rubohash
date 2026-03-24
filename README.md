@@ -20,6 +20,20 @@ By default, generated files are written to `./output` from your current working 
 
 For local development in this repository, you can use `./bin/build.sh`.
 
+## Benchmark
+
+To measure how long image generation takes locally:
+
+```sh
+bundle exec ruby benchmark/image_generation.rb
+bundle exec rake benchmark:image_generation
+ITERATIONS=25 WARMUP=5 bundle exec ruby benchmark/image_generation.rb
+SCENARIOS=without_background bundle exec ruby benchmark/image_generation.rb
+BATCH_SIZES=1,10,100 bundle exec ruby benchmark/image_generation.rb
+```
+
+The benchmark reports batch totals plus per-image averages in milliseconds for each scenario and batch size.
+
 ## Usage
 
 From Ruby code:
