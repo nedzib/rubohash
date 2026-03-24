@@ -1,6 +1,6 @@
 RSpec.describe Rubohash do
   it 'has a version number' do
-    expect(Rubohash::VERSION).to eql('0.1.3')
+    expect(Rubohash::VERSION).to eql('0.1.4')
   end
 
   describe 'concerning defaults' do

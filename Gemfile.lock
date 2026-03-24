@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rubohash (0.1.2)
+    rubohash (0.1.4)
       mini_magick (~> 4.9.4)
 
 GEM
